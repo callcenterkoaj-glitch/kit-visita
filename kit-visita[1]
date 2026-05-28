@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kit de Visita – Pasillo Infinito</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<!-- EmailJS -->
+
+<style>
+:root {
+  --bg:       #edf0f7;
+  --surface:  #ffffff;
+  --sf2:      #f4f6fb;
+  --border:   #dce1ee;
+  --border2:  #e8ecf6;
+  --navy:     #1c3172;
+  --navy2:    #253f9a;
+  --lime:     #b8f000;
+  --text:     #18213a;
+  --text2:    #3a4868;
+  --muted:    #74809e;
+  --muted2:   #a5afc8;
+  --green:    #166534;
+  --gbg:      #f0fdf4;
+  --gbd:      #bbf7d0;
+  --red:      #991b1b;
+  --rbg:      #fef2f2;
+  --rbd:      #fecaca;
+  --gold:     #92400e;
+  --ybg:      #fffbeb;
+  --ybd:      #fde68a;
+  --r:        10px;
+  --rs:       6px;
+  --sh:       0 1px 3px rgba(28,49,114,.07),0 1px 2px rgba(28,49,114,.05);
+  --shm:      0 4px 18px rgba(28,49,114,.13);
+  --ft:       'DM Serif Display', Georgia, serif;
+  --fb:       'Inter', system-ui, sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--fb);font-size:13.5px;line-height:1.65;min-height:100vh}
+
+/* ── TOPBAR ── */
+.topbar{background:var(--navy);padding:0 24px;display:flex;align-items:stretch;height:50px;position:sticky;top:0;z-index:100;box-shadow:var(--shm)}
+.tb-brand{display:flex;align-items:center;gap:9px;padding-right:22px;border-right:1px solid rgba(255,255,255,.12);flex-shrink:0}
+.tb-brand .name{font-family:var(--ft);font-size:17px;color:#fff;letter-spacing:.2px}
+.tb-brand .name em{color:var(--lime);font-style:normal}
+.dot{width:7px;height:7px;background:var(--lime);border-radius:50%;animation:blink 2.5s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.15}}
+.tab-nav{display:flex;align-items:stretch;flex:1;padding:0 14px;overflow-x:auto;scrollbar-width:none}
+.tab-nav::-webkit-scrollbar{display:none}
+.tbtn{display:flex;align-items:center;gap:6px;padding:0 13px;background:transparent;border:none;color:rgba(255,255,255,.48);font-family:var(--fb);font-size:11.5px;font-weight:500;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap}
+.tbtn:hover{color:rgba(255,255,255,.8)}
+.tbtn.on{color:#fff;border-bottom-color:var(--lime)}
+.tpct{background:rgba(255,255,255,.1);border-radius:100px;padding:1px 7px;font-size:9.5px;font-weight:700;color:rgba(255,255,255,.55)}
+.tbtn.on .tpct{background:var(--lime);color:var(--navy)}
+.tb-right{display:flex;align-items:center;gap:7px;padding-left:14px;border-left:1px solid rgba(255,255,255,.12);flex-shrink:0}
+.bt{padding:5px 13px;border-radius:var(--rs);font-family:var(--fb);font-size:11px;font-weight:600;cursor:pointer;border:none;transition:all .18s;letter-spacing:.2px}
+.bt-xl{background:var(--lime);color:var(--navy)}
+.bt-xl:hover{background:#d4ff00}
+.bt-dr{background:rgba(255,255,255,.1);color:rgba(255,255,255,.8);border:1px solid rgba(255,255,255,.13)}
+.bt-dr:hover{background:rgba(255,255,255,.18)}
+
+/* ── PAGES ── */
+.page{display:none}
+.page.on{display:block}
+.pi{max-width:860px;margin:0 auto;padding:30px 22px 90px}
+
+/* ── HERO ── */
+.hero{background:var(--navy);padding:38px 32px 30px;border-radius:var(--r);margin-bottom:22px;position:relative;overflow:hidden}
+.hero::after{content:'';position:absolute;right:-60px;top:-60px;width:280px;height:280px;background:radial-gradient(circle,rgba(184,240,0,.09) 0%,transparent 70%);pointer-events:none}
+.hbadge{display:inline-flex;align-items:center;gap:6px;background:rgba(184,240,0,.1);border:1px solid rgba(184,240,0,.2);padding:3px 12px;border-radius:100px;font-size:9.5px;font-weight:600;letter-spacing:1.8px;text-transform:uppercase;color:var(--lime);margin-bottom:14px}
+.hero h1{font-family:var(--ft);font-size:clamp(32px,6vw,56px);font-weight:400;line-height:1.0;letter-spacing:-.5px;color:#fff;margin-bottom:12px}
+.hero h1 em{color:var(--lime);font-style:normal;display:block}
+.hero-sub{font-size:12.5px;font-style:italic;color:rgba(255,255,255,.42);padding-left:12px;border-left:2px solid var(--lime);max-width:440px;line-height:1.55;margin-bottom:24px;font-family:var(--fb)}
+.hmeta{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid rgba(255,255,255,.08);border-radius:var(--rs);overflow:hidden}
+@media(max-width:580px){.hmeta{grid-template-columns:1fr 1fr}}
+.hmi{padding:10px 14px;border-right:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.035)}
+.hmi:last-child{border-right:none}
+.hmi .hl{font-size:8.5px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.32);margin-bottom:3px}
+.hmi .hv{font-family:var(--fb);font-size:12.5px;font-weight:600;color:#fff}
+.hmi .hv.lime{color:var(--lime)}
+
+/* ── CARD ── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:22px 22px 18px;margin-bottom:16px;box-shadow:var(--sh)}
+.ctitle{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:11px;border-bottom:1px solid var(--border2)}
+.ctl{display:flex;align-items:center;gap:8px}
+.ctbar{width:3px;height:16px;background:linear-gradient(to bottom,var(--lime),var(--navy2));border-radius:3px;flex-shrink:0}
+.ctitle h2{font-family:var(--ft);font-size:16px;font-weight:400;letter-spacing:.1px;color:var(--navy)}
+.spct{font-family:var(--fb);font-size:10px;font-weight:600;color:var(--muted);background:var(--sf2);border:1px solid var(--border);border-radius:100px;padding:2px 10px;transition:all .3s}
+.spct.done{background:var(--gbg);border-color:var(--gbd);color:var(--green)}
+.spct.half{background:var(--ybg);border-color:var(--ybd);color:var(--gold)}
+
+/* ── GRID ── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+@media(max-width:560px){.g2,.g3{grid-template-columns:1fr}}
+
+/* ── FIELD ── */
+.field{display:flex;flex-direction:column;gap:4px}
+.field label{font-size:9.5px;font-weight:700;letter-spacing:1.3px;text-transform:uppercase;color:var(--muted)}
+.fi{background:var(--sf2);border:1px solid var(--border);border-radius:var(--rs);padding:9px 11px;color:var(--text);font-family:var(--fb);font-size:13px;outline:none;width:100%;transition:border-color .18s,background .18s}
+.fi:focus{border-color:var(--navy2);background:#fff}
+.fi::placeholder{color:var(--muted2)}
+select.fi option{background:#fff;color:var(--text)}
+
+/* ── SUB ── */
+.sub{font-family:var(--ft);font-size:13px;font-style:italic;color:var(--muted);margin:16px 0 10px;display:flex;align-items:center;gap:8px}
+.sub::after{content:'';flex:1;height:1px;background:var(--border2)}
+
+/* ── DOTACION ── */
+.drow{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:4px}
+.df{background:var(--sf2);border:1px solid var(--border);border-radius:var(--rs);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.df label{font-size:12.5px;font-weight:500;color:var(--text2)}
+.nin{width:60px;background:#fff;border:1.5px solid var(--border);border-radius:var(--rs);padding:6px 8px;color:var(--navy);font-family:var(--fb);font-size:14px;font-weight:700;text-align:center;outline:none;transition:border-color .18s}
+.nin:focus{border-color:var(--navy2)}
+
+/* ── NUM ROW ── */
+.nr{display:flex;align-items:center;gap:12px;padding:11px 13px;background:var(--sf2);border:1px solid var(--border);border-radius:var(--rs);margin-bottom:7px;flex-wrap:wrap}
+.nr label{flex:1;font-size:13px;font-weight:400;color:var(--text2);min-width:160px;line-height:1.4}
+
+/* ── TOGGLE ── */
+.tg{display:flex;gap:5px;flex-shrink:0}
+.tgb{padding:5px 12px;border-radius:var(--rs);border:1.5px solid var(--border);background:#fff;color:var(--muted);font-family:var(--fb);font-size:11.5px;font-weight:600;cursor:pointer;transition:all .18s}
+.tgb:hover{border-color:var(--navy2);color:var(--navy)}
+.tgb.ay{background:var(--gbg);border-color:var(--gbd);color:var(--green)}
+.tgb.an{background:var(--rbg);border-color:var(--rbd);color:var(--red)}
+
+/* ── CHECK ITEM ── */
+.ci{border:1px solid var(--border);border-radius:var(--rs);overflow:hidden;margin-bottom:7px;background:#fff;transition:border-color .18s}
+.ci:focus-within{border-color:var(--navy2)}
+.cih{display:flex;align-items:center;padding:10px 13px;gap:11px;flex-wrap:wrap;background:var(--sf2)}
+.cil{flex:1;font-size:13px;font-weight:400;color:var(--text2);min-width:180px;line-height:1.4}
+.kg{display:flex;gap:5px;flex-shrink:0}
+.kb{padding:5px 11px;border-radius:var(--rs);border:1.5px solid var(--border);background:#fff;color:var(--muted);font-family:var(--fb);font-size:11px;font-weight:600;cursor:pointer;transition:all .18s;white-space:nowrap}
+.kb:hover{border-color:var(--navy2);color:var(--navy)}
+.kb.ky{background:var(--gbg);border-color:var(--gbd);color:var(--green)}
+.kb.kn{background:var(--rbg);border-color:var(--rbd);color:var(--red)}
+.obsp{display:none;padding:0 13px 10px;background:#fff;animation:sd .2s ease}
+.obsp.vis{display:block}
+@keyframes sd{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+.obsp textarea{width:100%;background:var(--rbg);border:1px solid var(--rbd);border-radius:var(--rs);padding:7px 10px;color:var(--text);font-family:var(--fb);font-size:12px;resize:vertical;min-height:48px;outline:none}
+.oblbl{font-size:9px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--red);display:block;margin:8px 0 4px}
+
+/* ── CASOS ── */
+.rtabs{display:flex;gap:6px;margin-bottom:13px}
+.rt{padding:5px 14px;border-radius:var(--rs);border:1.5px solid var(--border);background:var(--sf2);color:var(--muted);font-family:var(--fb);font-size:11.5px;font-weight:600;cursor:pointer;transition:all .18s}
+.rt.on{background:var(--navy);border-color:var(--navy);color:#fff}
+.cg{display:none}
+.cg.on{display:block}
+.cc{border:1px solid var(--border);border-radius:var(--rs);overflow:hidden;margin-bottom:7px;background:#fff}
+.ch{display:flex;align-items:center;padding:11px 14px;gap:10px;cursor:pointer;background:var(--sf2);transition:background .15s;flex-wrap:wrap}
+.ch:hover{background:var(--border2)}
+.cttl{font-size:13px;font-weight:500;color:var(--text2);flex:1;line-height:1.4;font-family:var(--fb)}
+.cest{display:flex;gap:5px;flex-shrink:0}
+.eb{padding:4px 10px;border-radius:var(--rs);border:1.5px solid var(--border);background:#fff;color:var(--muted);font-size:10.5px;font-weight:600;cursor:pointer;transition:all .18s}
+.eb.enp{background:var(--gbg);border-color:var(--gbd);color:var(--green)}
+.eb.ep{background:var(--ybg);border-color:var(--ybd);color:var(--gold)}
+.chev{color:var(--muted2);font-size:15px;transition:transform .22s;flex-shrink:0}
+.chev.open{transform:rotate(180deg)}
+.cbody{display:none;padding:0 14px 12px;background:#fff;animation:sd .2s ease}
+.cbody.vis{display:block}
+.cque{margin-top:10px;font-size:12.5px;color:var(--text2);line-height:1.6;background:var(--ybg);border-left:3px solid #d97706;padding:9px 12px;border-radius:0 var(--rs) var(--rs) 0;font-family:var(--fb)}
+.cqlbl{font-size:9px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:#92400e;display:block;margin-bottom:5px}
+
+/* ── ESTRELLAS ── */
+.ei{background:var(--sf2);border:1px solid var(--border);border-radius:var(--rs);padding:14px 16px;margin-bottom:9px}
+.ei p{font-size:13px;font-weight:500;color:var(--text2);margin-bottom:10px;font-family:var(--fb)}
+.stars{display:flex;gap:3px}
+.star{width:32px;height:32px;background:none;border:none;cursor:pointer;font-size:26px;color:var(--border);transition:color .15s,transform .1s;display:flex;align-items:center;justify-content:center;padding:0;line-height:1}
+.star:hover,.star.on{color:#f59e0b}
+.star:active{transform:scale(.87)}
+.eta{width:100%;background:#fff;border:1px solid var(--border);border-radius:var(--rs);padding:9px 11px;color:var(--text);font-family:var(--fb);font-size:13px;resize:vertical;min-height:84px;outline:none}
+.eta:focus{border-color:var(--navy2)}
+
+/* ── RESULTADO ── */
+.resbox{border-radius:var(--r);padding:26px 26px 22px;margin-bottom:18px;border:2px solid}
+.resbox.apr{background:var(--gbg);border-color:var(--gbd)}
+.resbox.rej{background:var(--rbg);border-color:var(--rbd)}
+.restit{font-family:var(--ft);font-size:22px;font-weight:400;margin-bottom:4px}
+.restit.gv{color:var(--green)}
+.restit.rv{color:var(--red)}
+.ressub{font-size:12.5px;color:var(--muted);margin-bottom:16px;font-family:var(--fb)}
+.pbar-w{background:var(--border2);border-radius:100px;height:7px;overflow:hidden;margin-bottom:16px}
+.pbar-f{height:100%;border-radius:100px;background:linear-gradient(to right,var(--navy2),var(--lime));transition:width .6s ease}
+.res-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+@media(max-width:480px){.res-grid{grid-template-columns:1fr}}
+.ri{background:#fff;border:1px solid var(--border);border-radius:var(--rs);padding:10px 13px;cursor:default}
+.ri.clickable{cursor:pointer;transition:border-color .18s}
+.ri.clickable:hover{border-color:var(--red)}
+.ri .rl{font-size:9px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
+.ri .rv{font-size:13px;font-weight:600;color:var(--text);font-family:var(--fb)}
+.ri .rv.ok{color:var(--green)}
+.ri .rv.fail{color:var(--red)}
+.ri .hint{font-size:10px;color:var(--muted2);margin-top:2px}
+
+/* detalle items fallidos */
+.fail-list{display:none;margin-top:10px;padding-top:10px;border-top:1px solid var(--rbd)}
+.fail-list.vis{display:block}
+.fail-item{font-size:12px;color:var(--red);padding:5px 9px;background:var(--rbg);border-radius:var(--rs);margin-bottom:5px;border-left:3px solid var(--rbd);font-family:var(--fb);line-height:1.4}
+
+/* ── NAV BTNS ── */
+.navb{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.bp{padding:8px 18px;border-radius:var(--rs);font-family:var(--fb);font-size:12px;font-weight:600;cursor:pointer;border:none;transition:all .18s}
+.bnavy{background:var(--navy);color:#fff}
+.bnavy:hover{background:var(--navy2)}
+.bout{background:#fff;color:var(--navy);border:1.5px solid var(--border)}
+.bout:hover{border-color:var(--navy2)}
+.blime{background:var(--lime);color:var(--navy);font-weight:700}
+.blime:hover{background:#d4ff00}
+
+/* ── SAVE BAR ── */
+.sbar{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.95);backdrop-filter:blur(10px);border-top:1px solid var(--border);padding:11px 22px;display:flex;justify-content:flex-end;gap:8px;z-index:50}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:64px;right:20px;background:var(--navy);color:#fff;font-family:var(--fb);font-size:12px;font-weight:600;padding:8px 16px;border-radius:var(--rs);opacity:0;transform:translateY(8px);transition:all .28s;pointer-events:none;z-index:999;box-shadow:var(--shm)}
+.toast.show{opacity:1;transform:translateY(0)}
+
+.divider{height:1px;background:var(--border2);margin:18px 0}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="tb-brand">
+    <span class="dot"></span>
+    <span class="name">Pasillo <em>Infinito</em></span>
+  </div>
+  <nav class="tab-nav">
+    <button class="tbtn on" onclick="goTab(0)" id="tab0">Datos de la Tienda <span class="tpct" id="pct0">0%</span></button>
+    <button class="tbtn" onclick="goTab(1)" id="tab1">Capacitacion <span class="tpct" id="pct1">0%</span></button>
+    <button class="tbtn" onclick="goTab(2)" id="tab2">Acceso y Uso <span class="tpct" id="pct2">0%</span></button>
+    <button class="tbtn" onclick="goTab(3)" id="tab3">Facturacion <span class="tpct" id="pct3">0%</span></button>
+    <button class="tbtn" onclick="goTab(4)" id="tab4">Despacho <span class="tpct" id="pct4">0%</span></button>
+    <button class="tbtn" onclick="goTab(5)" id="tab5">Materiales <span class="tpct" id="pct5">0%</span></button>
+    <button class="tbtn" onclick="goTab(6)" id="tab6">Casos Frecuentes</button>
+    <button class="tbtn" onclick="goTab(7)" id="tab7">Encuesta y Resultado</button>
+  </nav>
+  <div class="tb-right">
+    <button class="bt bt-dr" onclick="guardarLocal()">Guardar borrador</button>
+    <button class="bt bt-xl" onclick="exportarExcel()">Exportar Excel</button>
+  </div>
+</div>
+
+<!-- ══ P0: DATOS TIENDA ══ -->
+<div class="page on" id="page0"><div class="pi">
+
+  <div class="hero">
+    <div class="hbadge"><span class="dot"></span> Kit de Visita · 2026</div>
+    <h1>Pasillo<em>Infinito</em></h1>
+    <p class="hero-sub">No vendemos solo lo que esta en tienda. Con Pasillo Infinito vendemos lo que el cliente realmente quiere comprar.</p>
+    <div class="hmeta">
+      <div class="hmi"><div class="hl">Tipo de documento</div><div class="hv">Kit de Visita</div></div>
+      <div class="hmi"><div class="hl">Fecha</div><div class="hv lime" id="hFecha">—</div></div>
+      <div class="hmi"><div class="hl">Lider que te visita</div><div class="hv lime" id="hLider">—</div></div>
+      <div class="hmi"><div class="hl">Tienda</div><div class="hv" id="hTienda">—</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle"><div class="ctl"><span class="ctbar"></span><h2>Informacion de la Visita</h2></div><span class="spct" id="spct0">0%</span></div>
+    <div class="g3" style="margin-bottom:12px">
+      <div class="field"><label>Nombre de la tienda</label><input class="fi" type="text" id="storeName" placeholder="Ej: Tienda Norte 045" oninput="syncH();p0()"></div>
+      <div class="field"><label>Ciudad</label><input class="fi" type="text" id="storeCity" placeholder="Ej: Bogota" oninput="p0()"></div>
+      <div class="field"><label>Fecha de visita</label><input class="fi" type="date" id="visitDate" oninput="syncH();p0()"></div>
+    </div>
+    <div class="g3" style="margin-bottom:18px">
+      <div class="field">
+        <label>Lider que te visita</label>
+        <select class="fi" id="visitLeader" onchange="syncH();p0()">
+          <option value="">Selecciona el lider</option>
+          <option value="Daniela Marin">Daniela Marin</option>
+          <option value="Valentina Cuineme">Valentina Cuineme</option>
+          <option value="Valentina Urrego">Valentina Urrego</option>
+        </select>
+      </div>
+      <div class="field"><label>Responsable de la tienda</label><input class="fi" type="text" id="visitResponsible" placeholder="Nombre" oninput="p0()"></div>
+      <div class="field">
+        <label>Cargo</label>
+        <select class="fi" id="visitRole" onchange="p0()">
+          <option value="">Selecciona el cargo</option>
+          <option value="Administrador">Administrador</option>
+          <option value="Coadministrador">Coadministrador</option>
+        </select>
+      </div>
+    </div>
+    <div class="sub">Integrantes de la tienda</div>
+    <div class="drow">
+      <div class="df"><label>Cajeros</label><input type="number" class="nin" min="0" id="numCajeros" placeholder="0" oninput="p0()"></div>
+      <div class="df"><label>Asesores</label><input type="number" class="nin" min="0" id="numAsesores" placeholder="0" oninput="p0()"></div>
+    </div>
+  </div>
+
+  <div class="navb"><button class="bp blime" onclick="goTab(1)">Continuar &rarr;</button></div>
+</div></div>
+
+<!-- ══ P1: CAPACITACION ══ -->
+<div class="page" id="page1"><div class="pi">
+  <div class="card">
+    <div class="ctitle"><div class="ctl"><span class="ctbar"></span><h2>Asistencia a la Capacitacion</h2></div><span class="spct" id="spct1">0%</span></div>
+    <div class="nr"><label>Tu como lider te conectaste a la capacitacion</label>
+      <div class="tg"><button class="tgb" onclick="setTg(this,'lc','yes');p1()">Si</button><button class="tgb" onclick="setTg(this,'lc','no');p1()">No</button></div>
+    </div>
+    <div class="nr"><label>Cuantos de tus cajeros se conectaron a la capacitacion</label>
+      <input type="number" class="nin" min="0" id="cajerosCap" placeholder="0" oninput="p1()">
+    </div>
+    <div class="nr"><label>Algun asesor estuvo en la capacitacion</label>
+      <div class="tg"><button class="tgb" onclick="setTg(this,'ac','yes');p1()">Si</button><button class="tgb" onclick="setTg(this,'ac','no');p1()">No</button></div>
+    </div>
+  </div>
+  <div class="navb"><button class="bp bout" onclick="goTab(0)">&larr; Atras</button><button class="bp blime" onclick="goTab(2)">Continuar &rarr;</button></div>
+</div></div>
+
+<!-- ══ P2: ACCESO ══ -->
+<div class="page" id="page2"><div class="pi">
+  <div class="card">
+    <div class="ctitle"><div class="ctl"><span class="ctbar"></span><h2>Acceso y Uso del Sitio</h2></div><span class="spct" id="spct2">0%</span></div>
+    <div id="items-acceso"></div>
+  </div>
+  <div class="navb"><button class="bp bout" onclick="goTab(1)">&larr; Atras</button><button class="bp blime" onclick="goTab(3)">Continuar &rarr;</button></div>
+</div></div>
+
+<!-- ══ P3: FACTURACION ══ -->
+<div class="page" id="page3"><div class="pi">
+  <div class="card">
+    <div class="ctitle"><div class="ctl"><span class="ctbar"></span><h2>Proceso de Facturacion</h2></div><span class="spct" id="spct3">0%</span></div>
+    <div id="items-facturacion"></div>
+  </div>
+  <div class="navb"><button class="bp bout" onclick="goTab(2)">&larr; Atras</button><button class="bp blime" onclick="goTab(4)">Continuar &rarr;</button></div>
+</div></div>
+
+<!-- ══ P4: DESPACHO ══ -->
+<div class="page" id="page4"><div class="pi">
+  <div class="card">
+    <div class="ctitle"><div class="ctl"><span class="ctbar"></span><h2>Despacho y Seguimiento del Pedido</h2></div><span class="spct" id="spct4">0%</span></div>
+    <div id="items-despacho"></div>
+  </div>
+  <div class="navb"><button class="bp bout" onclick="goTab(3)">&larr; Atras</button><button class="bp blime" onclick="goTab(5)">Continuar &rarr;</button></div>
+</div></div>
+
+<!-- ══ P5: MATERIALES ══ -->
+<div class="page" id="page5"><div class="pi">
+  <div class="card">
+    <div class="ctitle"><div class="ctl"><span class="ctbar"></span><h2>Materiales y Seguimiento</h2></div><span class="spct" id="spct5">0%</span></div>
+    <div id="items-materiales"></div>
+  </div>
+  <div class="navb"><button class="bp bout" onclick="goTab(4)">&larr; Atras</button><button class="bp blime" onclick="goTab(6)">Continuar &rarr;</button></div>
+</div></div>
+
+<!-- ══ P6: CASOS ══ -->
+<div class="page" id="page6"><div class="pi">
+  <div class="card">
+    <div class="ctitle"><div class="ctl"><span class="ctbar"></span><h2>Casos Frecuentes</h2></div></div>
+    <div class="rtabs">
+      <button class="rt on" onclick="swRole(this,'admin')">Administrador</button>
+      <button class="rt" onclick="swRole(this,'cajero')">Cajero / Lider</button>
+    </div>
+    <div class="cg on" id="casos-admin">
+      <div class="cc"><div class="ch" onclick="togC(this)"><span class="cttl">El cliente quiere cambiar la direccion de entrega despues de hacer el pedido</span><div class="cest"><button class="eb" onclick="setC(event,'ca1','nop',this)">No se ha presentado</button><button class="eb" onclick="setC(event,'ca1','pres',this)">Se presento</button></div><span class="chev">&#8964;</span></div><div class="cbody"><div class="cque"><span class="cqlbl">Que hacer si se presenta</span>Contactar soporte antes de que el pedido salga a despacho. Si ya fue despachado, informar al cliente que no es posible cambiar la direccion y gestionar devolucion si aplica.</div></div></div>
+      <div class="cc"><div class="ch" onclick="togC(this)"><span class="cttl">El pedido figura como entregado pero el cliente dice que no lo recibio</span><div class="cest"><button class="eb" onclick="setC(event,'ca2','nop',this)">No se ha presentado</button><button class="eb" onclick="setC(event,'ca2','pres',this)">Se presento</button></div><span class="chev">&#8964;</span></div><div class="cbody"><div class="cque"><span class="cqlbl">Que hacer si se presenta</span>Verificar en el OMS estado y evidencia de entrega. Escalar a soporte con numero de pedido. No generar nuevo pedido hasta recibir respuesta de logistica.</div></div></div>
+      <div class="cc"><div class="ch" onclick="togC(this)"><span class="cttl">El sistema no permite facturar o se queda cargando</span><div class="cest"><button class="eb" onclick="setC(event,'ca3','nop',this)">No se ha presentado</button><button class="eb" onclick="setC(event,'ca3','pres',this)">Se presento</button></div><span class="chev">&#8964;</span></div><div class="cbody"><div class="cque"><span class="cqlbl">Que hacer si se presenta</span>Cerrar sesion y volver a ingresar. Si persiste, revisar conectividad. Reportar al soporte con captura del error.</div></div></div>
+      <div class="cc"><div class="ch" onclick="togC(this)"><span class="cttl">Un producto no tiene stock en el sitio pero si existe en tienda</span><div class="cest"><button class="eb" onclick="setC(event,'ca4','nop',this)">No se ha presentado</button><button class="eb" onclick="setC(event,'ca4','pres',this)">Se presento</button></div><span class="chev">&#8964;</span></div><div class="cbody"><div class="cque"><span class="cqlbl">Que hacer si se presenta</span>Reportar discrepancia al soporte con codigo del producto. No vender fuera de la plataforma. Ofrecer alternativas disponibles en el sitio.</div></div></div>
+    </div>
+    <div class="cg" id="casos-cajero">
+      <div class="cc"><div class="ch" onclick="togC(this)"><span class="cttl">El carrito quedo pausado y no se puede retomar</span><div class="cest"><button class="eb" onclick="setC(event,'cc1','nop',this)">No se ha presentado</button><button class="eb" onclick="setC(event,'cc1','pres',this)">Se presento</button></div><span class="chev">&#8964;</span></div><div class="cbody"><div class="cque"><span class="cqlbl">Que hacer si se presenta</span>Ir al historial de pedidos y buscar el carrito pausado. Retomarlo desde ahi. Si no aparece, crear nuevo carrito e informar a soporte.</div></div></div>
+      <div class="cc"><div class="ch" onclick="togC(this)"><span class="cttl">El cliente quiere saber en que estado va su pedido</span><div class="cest"><button class="eb" onclick="setC(event,'cc2','nop',this)">No se ha presentado</button><button class="eb" onclick="setC(event,'cc2','pres',this)">Se presento</button></div><span class="chev">&#8964;</span></div><div class="cbody"><div class="cque"><span class="cqlbl">Que hacer si se presenta</span>Ingresar al OMS con el numero de pedido. Informar al cliente el tiempo estimado segun la guia de tiempos de despacho.</div></div></div>
+      <div class="cc"><div class="ch" onclick="togC(this)"><span class="cttl">Se borro una linea del pedido por error durante la facturacion</span><div class="cest"><button class="eb" onclick="setC(event,'cc3','nop',this)">No se ha presentado</button><button class="eb" onclick="setC(event,'cc3','pres',this)">Se presento</button></div><span class="chev">&#8964;</span></div><div class="cbody"><div class="cque"><span class="cqlbl">Que hacer si se presenta</span>No es posible recuperar la linea borrada. Volver a agregar el producto antes de facturar. Si ya se facturo, escalar a soporte con el numero de pedido.</div></div></div>
+    </div>
+  </div>
+  <div class="navb"><button class="bp bout" onclick="goTab(5)">&larr; Atras</button><button class="bp blime" onclick="goTab(7)">Ir a Encuesta &rarr;</button></div>
+</div></div>
+
+<!-- ══ P7: ENCUESTA + RESULTADO ══ -->
+<div class="page" id="page7"><div class="pi">
+  <div class="card">
+    <div class="ctitle"><div class="ctl"><span class="ctbar"></span><h2>Encuesta de Percepcion</h2></div></div>
+    <div class="ei"><p>1. Que tan facil les resulta a los colaboradores usar Pasillo Infinito?</p><div class="stars" id="enc1"><button class="star" onclick="setStar('enc1',1,this)">&#9733;</button><button class="star" onclick="setStar('enc1',2,this)">&#9733;</button><button class="star" onclick="setStar('enc1',3,this)">&#9733;</button><button class="star" onclick="setStar('enc1',4,this)">&#9733;</button><button class="star" onclick="setStar('enc1',5,this)">&#9733;</button></div></div>
+    <div class="ei"><p>2. Que tan bien funcionan los tiempos de recogida en tienda?</p><div class="stars" id="enc2"><button class="star" onclick="setStar('enc2',1,this)">&#9733;</button><button class="star" onclick="setStar('enc2',2,this)">&#9733;</button><button class="star" onclick="setStar('enc2',3,this)">&#9733;</button><button class="star" onclick="setStar('enc2',4,this)">&#9733;</button><button class="star" onclick="setStar('enc2',5,this)">&#9733;</button></div></div>
+    <div class="ei"><p>3. Que tan bien esta aprovechando la tienda el potencial de Pasillo Infinito?</p><div class="stars" id="enc3"><button class="star" onclick="setStar('enc3',1,this)">&#9733;</button><button class="star" onclick="setStar('enc3',2,this)">&#9733;</button><button class="star" onclick="setStar('enc3',3,this)">&#9733;</button><button class="star" onclick="setStar('enc3',4,this)">&#9733;</button><button class="star" onclick="setStar('enc3',5,this)">&#9733;</button></div></div>
+    <div class="divider"></div>
+    <div class="ei" style="background:#fff"><p>Observaciones generales de la visita</p><textarea class="eta" id="obsGenerales" placeholder="Escribe tus observaciones aqui..."></textarea></div>
+  </div>
+
+  <div id="resultado-wrap"></div>
+
+  <div class="navb">
+    <button class="bp bout" onclick="goTab(6)">&larr; Atras</button>
+    <button class="bp bnavy" onclick="calcResultado()">Ver Resultado de la Visita</button>
+    <button class="bp blime" onclick="exportarExcel()">Exportar Excel</button>
+  </div>
+</div></div>
+
+<!-- SAVE BAR -->
+<div class="sbar">
+  <button class="bt bt-dr" onclick="guardarLocal()">Guardar borrador</button>
+  <button class="bt bt-xl" onclick="exportarExcel()">Exportar Excel</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── EmailJS config (reemplaza con tus credenciales) ──
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx_p30i9-NePyxaocU0H71TlwN7B9PAlvjj20KWaGL2UJAnIiQ5yXUdTgUDOv-3VIzXdA/exec';
+
+// ── SECCIONES CHECK ──
+const SECS = {
+  'items-acceso':     { pId:'spct2', tId:'pct2', items:[
+    {id:'link-anclado',  lbl:'El link del sitio esta anclado y guardado en los dispositivos de la tienda'},
+    {id:'actualizacion', lbl:'Conocen la actualizacion reciente (carritos pausados e historial de pedidos) y han revisado el material enviado'},
+  ]},
+  'items-facturacion':{ pId:'spct3', tId:'pct3', items:[
+    {id:'fact-proceso', lbl:'Conocen como generar el proceso de facturacion de la herramienta'},
+    {id:'venta-espera', lbl:'Conocen que pasa si se deja una venta en espera'},
+    {id:'borra-linea',  lbl:'Conocen que pasa si se borra una linea del pedido'},
+    {id:'borra-bolsa',  lbl:'Conocen que pasa si se borra la bolsa del pedido'},
+  ]},
+  'items-despacho':   { pId:'spct4', tId:'pct4', items:[
+    {id:'oms-anclado',      lbl:'Tiene anclada la pagina del OMS'},
+    {id:'oms-seguimiento',  lbl:'Conoce como hacerle seguimiento a un pedido en el OMS'},
+    {id:'tiempos-despacho', lbl:'Conocen los tiempos de despacho'},
+    {id:'canales-com',      lbl:'Conoce los canales de comunicacion y sus accesos directos'},
+  ]},
+  'items-materiales': { pId:'spct5', tId:'pct5', items:[
+    {id:'material-visto', lbl:'Han visto los contenidos y material enviados por comunidades, grupos WA y correos'},
+    {id:'link-dudas',     lbl:'Conocen el link de consulta cuando tengan dudas del proceso'},
+  ]},
+};
+
+const ST = { tg:{}, ch:{}, casos:{}, stars:{} };
+
+// ── BUILD DOM ──
+function buildCI({id,lbl}, sk) {
+  return `<div class="ci" id="ci-${id}">
+    <div class="cih">
+      <span class="cil">${lbl}</span>
+      <div class="kg">
+        <button class="kb" onclick="setCheck('${id}','yes',this,'${sk}')">Lo conocen</button>
+        <button class="kb" onclick="setCheck('${id}','no',this,'${sk}')">No lo conocen</button>
+      </div>
+    </div>
+    <div class="obsp" id="obs-${id}">
+      <span class="oblbl">Que paso</span>
+      <textarea placeholder="Describe la situacion observada..." oninput="ST.ch['${id}'].obs=this.value"></textarea>
+    </div>
+  </div>`;
+}
+
+function initDOM() {
+  for (const [sk, sec] of Object.entries(SECS)) {
+    document.getElementById(sk).innerHTML = sec.items.map(i=>buildCI(i,sk)).join('');
+    sec.items.forEach(i=>{ ST.ch[i.id]={val:'',obs:''}; });
+  }
+}
+
+// ── TABS ──
+function goTab(n) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.tbtn').forEach(b=>b.classList.remove('on'));
+  document.getElementById('page'+n).classList.add('on');
+  document.getElementById('tab'+n).classList.add('on');
+  window.scrollTo(0,0);
+}
+
+// ── SYNC HERO ──
+function syncH() {
+  const nm = document.getElementById('storeName').value||'—';
+  const ld = document.getElementById('visitLeader').value||'—';
+  const dt = document.getElementById('visitDate').value;
+  document.getElementById('hTienda').textContent = nm;
+  document.getElementById('hLider').textContent  = ld;
+  document.getElementById('hFecha').textContent  = dt
+    ? new Date(dt+'T12:00:00').toLocaleDateString('es-CO',{day:'2-digit',month:'long',year:'numeric'})
+    : '—';
+}
+
+// ── TOGGLE ──
+function setTg(btn, id, val) {
+  btn.closest('.tg').querySelectorAll('.tgb').forEach(b=>b.classList.remove('ay','an'));
+  btn.classList.add(val==='yes'?'ay':'an');
+  ST.tg[id]=val;
+}
+
+// ── CHECK ──
+function setCheck(id, val, btn, sk) {
+  document.getElementById('ci-'+id).querySelectorAll('.kb').forEach(b=>b.classList.remove('ky','kn'));
+  btn.classList.add(val==='yes'?'ky':'kn');
+  ST.ch[id].val=val;
+  document.getElementById('obs-'+id).classList.toggle('vis', val==='no');
+  calcCkPct(sk);
+}
+
+// ── PCT ──
+function setPct(cEl, tEl, pct) {
+  const c=document.getElementById(cEl), t=document.getElementById(tEl);
+  if(c){c.textContent=pct+'%';c.classList.toggle('done',pct===100);c.classList.toggle('half',pct>=50&&pct<100);}
+  if(t) t.textContent=pct+'%';
+}
+function p0(){
+  const f=['storeName','storeCity','visitDate','visitLeader','visitResponsible','visitRole','numCajeros','numAsesores']
+    .filter(id=>document.getElementById(id)?.value!=='').length;
+  setPct('spct0','pct0',Math.round(f/8*100));
+}
+function p1(){
+  let f=0;
+  if(ST.tg['lc']) f++;
+  if(document.getElementById('cajerosCap').value!=='') f++;
+  if(ST.tg['ac']) f++;
+  setPct('spct1','pct1',Math.round(f/3*100));
+}
+function calcCkPct(sk){
+  const sec=SECS[sk]; if(!sec) return;
+  const fil=sec.items.filter(i=>ST.ch[i.id]?.val!=='').length;
+  setPct(sec.pId,sec.tId,Math.round(fil/sec.items.length*100));
+}
+
+// ── CASOS ──
+function togC(h){
+  const b=h.nextElementSibling, c=h.querySelector('.chev');
+  b.classList.toggle('vis'); c.classList.toggle('open');
+}
+function setC(e,id,val,btn){
+  e.stopPropagation();
+  btn.closest('.cest').querySelectorAll('.eb').forEach(b=>b.classList.remove('enp','ep'));
+  btn.classList.add(val==='nop'?'enp':'ep');
+  ST.casos[id]=val;
+  if(val==='pres'){const h=btn.closest('.ch');h.nextElementSibling.classList.add('vis');h.querySelector('.chev').classList.add('open');}
+}
+function swRole(btn,r){
+  document.querySelectorAll('.rt').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  document.querySelectorAll('.cg').forEach(g=>g.classList.remove('on'));
+  document.getElementById('casos-'+r).classList.add('on');
+}
+
+// ── STARS ──
+function setStar(gid,val,btn){
+  document.getElementById(gid).querySelectorAll('.star').forEach((s,i)=>s.classList.toggle('on',i<val));
+  ST.stars[gid]=val;
+}
+
+// ── RESULTADO ──
+function calcResultado(){
+  const allCh = Object.values(ST.ch);
+  const total = allCh.length;
+  const pos   = allCh.filter(c=>c.val==='yes').length;
+  const neg   = allCh.filter(c=>c.val==='no').length;
+  const sinR  = allCh.filter(c=>c.val==='').length;
+  const pct   = total>0 ? Math.round(pos/total*100) : 0;
+  const apr   = pct>=70;
+
+  // Recopilar items fallidos con sus labels
+  const fallidos = [];
+  for(const [sk, sec] of Object.entries(SECS)){
+    for(const item of sec.items){
+      if(ST.ch[item.id]?.val==='no' || ST.ch[item.id]?.val===''){
+        fallidos.push({lbl: item.lbl, val: ST.ch[item.id]?.val});
+      }
+    }
+  }
+
+  const failHtml = fallidos.length
+    ? fallidos.map(f=>`<div class="fail-item">${f.lbl}${f.val===''?' <em style="opacity:.6">(sin respuesta)</em>':''}</div>`).join('')
+    : '<div class="fail-item" style="border-color:var(--gbd);background:var(--gbg);color:var(--green)">Todos los items respondidos positivamente</div>';
+
+  document.getElementById('resultado-wrap').innerHTML = `
+  <div class="resbox ${apr?'apr':'rej'}">
+    <div class="restit ${apr?'gv':'rv'}">${apr?'Visita Aprobada':'Visita No Aprobada'}</div>
+    <div class="ressub">${apr
+      ? 'La tienda demuestra un buen nivel de conocimiento y adopcion de Pasillo Infinito.'
+      : 'Se identificaron oportunidades de mejora que requieren seguimiento y refuerzo.'}</div>
+    <div class="pbar-w"><div class="pbar-f" style="width:${pct}%"></div></div>
+    <div class="res-grid">
+      <div class="ri"><div class="rl">Respuestas positivas</div><div class="rv ok">${pos} de ${total}</div></div>
+      <div class="ri"><div class="rl">Porcentaje de conocimiento</div><div class="rv ${apr?'ok':'fail'}">${pct}%</div></div>
+      <div class="ri clickable" onclick="togFail(this)" title="Clic para ver detalle">
+        <div class="rl">Items a reforzar</div>
+        <div class="rv fail">${fallidos.length} item${fallidos.length!==1?'s':''}</div>
+        <div class="hint">Clic para ver cuales &darr;</div>
+        <div class="fail-list" id="fail-list">${failHtml}</div>
+      </div>
+      <div class="ri"><div class="rl">Sin respuesta</div><div class="rv">${sinR}</div></div>
+    </div>
+  </div>`;
+
+  document.getElementById('resultado-wrap').scrollIntoView({behavior:'smooth',block:'start'});
+
+  // Enviar a Google Sheets
+  enviarASheets(apr, pct, fallidos);
+}
+
+function togFail(card){
+  const fl=card.querySelector('.fail-list');
+  fl.classList.toggle('vis');
+  card.querySelector('.hint').textContent = fl.classList.contains('vis') ? 'Clic para ocultar ↑' : 'Clic para ver cuales ↓';
+}
+
+// ── ENVIAR A GOOGLE SHEETS ──
+function enviarASheets(apr, pct, fallidos){
+  const g = id => document.getElementById(id)?.value||'';
+  const ck = id => ST.ch[id]?.val==='yes'?'Lo conocen':ST.ch[id]?.val==='no'?'No lo conocen':'—';
+  const ob = id => ST.ch[id]?.obs||'';
+
+  const payload = {
+    tienda:              g('storeName'),
+    ciudad:              g('storeCity'),
+    fecha:               g('visitDate'),
+    lider:               g('visitLeader'),
+    responsable:         g('visitResponsible'),
+    cargo:               g('visitRole'),
+    cajeros:             g('numCajeros'),
+    asesores:            g('numAsesores'),
+    lider_cap:           ST.tg['lc']||'—',
+    cajeros_cap:         g('cajerosCap'),
+    asesor_cap:          ST.tg['ac']||'—',
+    link_anclado:        ck('link-anclado'),
+    link_anclado_obs:    ob('link-anclado'),
+    actualizacion:       ck('actualizacion'),
+    actualizacion_obs:   ob('actualizacion'),
+    fact_proceso:        ck('fact-proceso'),
+    fact_proceso_obs:    ob('fact-proceso'),
+    venta_espera:        ck('venta-espera'),
+    venta_espera_obs:    ob('venta-espera'),
+    borra_linea:         ck('borra-linea'),
+    borra_linea_obs:     ob('borra-linea'),
+    borra_bolsa:         ck('borra-bolsa'),
+    borra_bolsa_obs:     ob('borra-bolsa'),
+    oms_anclado:         ck('oms-anclado'),
+    oms_anclado_obs:     ob('oms-anclado'),
+    oms_seguimiento:     ck('oms-seguimiento'),
+    oms_seguimiento_obs: ob('oms-seguimiento'),
+    tiempos_despacho:    ck('tiempos-despacho'),
+    tiempos_despacho_obs:ob('tiempos-despacho'),
+    canales_com:         ck('canales-com'),
+    canales_com_obs:     ob('canales-com'),
+    material_visto:      ck('material-visto'),
+    material_visto_obs:  ob('material-visto'),
+    link_dudas:          ck('link-dudas'),
+    link_dudas_obs:      ob('link-dudas'),
+    enc1:                ST.stars['enc1']||'—',
+    enc2:                ST.stars['enc2']||'—',
+    enc3:                ST.stars['enc3']||'—',
+    observaciones:       g('obsGenerales'),
+    resultado:           apr ? 'APROBADA' : 'NO APROBADA',
+    porcentaje:          pct + '%'
+  };
+
+  showToast('Guardando en base de datos...');
+
+  fetch(SCRIPT_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  })
+  .then(() => showToast('Visita guardada en Google Sheets'))
+  .catch(() => showToast('Error al guardar — exporta el Excel manualmente'));
+}
+
+// ── GUARDAR LOCAL ──
+function guardarLocal(){
+  const snap={
+    storeName:document.getElementById('storeName').value,
+    storeCity:document.getElementById('storeCity').value,
+    visitDate:document.getElementById('visitDate').value,
+    visitLeader:document.getElementById('visitLeader').value,
+    visitResponsible:document.getElementById('visitResponsible').value,
+    visitRole:document.getElementById('visitRole').value,
+    numCajeros:document.getElementById('numCajeros').value,
+    numAsesores:document.getElementById('numAsesores').value,
+    cajerosCap:document.getElementById('cajerosCap').value,
+    tg:{...ST.tg},ch:JSON.parse(JSON.stringify(ST.ch)),
+    casos:{...ST.casos},stars:{...ST.stars},
+    obs:document.getElementById('obsGenerales').value,
+    ts:new Date().toISOString()
+  };
+  localStorage.setItem('kit_pi_'+Date.now(),JSON.stringify(snap));
+  showToast('Borrador guardado');
+}
+
+// ── EXCEL ──
+const gv = id => document.getElementById(id)?.value||'';
+const yn = v  => v==='yes'?'Si':v==='no'?'No':'—';
+const ck = id => ST.ch[id]?.val==='yes'?'Lo conocen':ST.ch[id]?.val==='no'?'No lo conocen':'—';
+const ob = id => ST.ch[id]?.obs||'';
+const cL = id => ST.casos[id]==='nop'?'No se ha presentado':ST.casos[id]==='pres'?'Se presento':'—';
+const st = id => ST.stars[id]?ST.stars[id]+'/5':'—';
+
+function exportarExcel(){
+  const wb=XLSX.utils.book_new();
+  const allCh=Object.values(ST.ch);
+  const pos=allCh.filter(c=>c.val==='yes').length;
+  const pct=allCh.length?Math.round(pos/allCh.length*100):0;
+  const apr=pct>=70?'APROBADA':'NO APROBADA';
+
+  const ws1=XLSX.utils.aoa_to_sheet([
+    ['PASILLO INFINITO - KIT DE VISITA','','',''],['','','',''],
+    ['DATOS GENERALES','','',''],
+    ['Tienda',gv('storeName'),'Ciudad',gv('storeCity')],
+    ['Fecha',gv('visitDate'),'Lider que visita',gv('visitLeader')],
+    ['Responsable',gv('visitResponsible'),'Cargo',gv('visitRole')],
+    ['','','',''],['INTEGRANTES DE LA TIENDA','','',''],
+    ['Cajeros',gv('numCajeros'),'Asesores',gv('numAsesores')],
+  ]);
+  ws1['!cols']=[{wch:26},{wch:24},{wch:22},{wch:24}];
+  XLSX.utils.book_append_sheet(wb,ws1,'Resumen');
+
+  const ws2=XLSX.utils.aoa_to_sheet([
+    ['CAPACITACION','',''],['','',''],
+    ['Item','Respuesta',''],
+    ['Lider se conecto a la capacitacion',yn(ST.tg['lc']),''],
+    ['Cajeros conectados a la capacitacion',gv('cajerosCap')||'—',''],
+    ['Algun asesor estuvo en la capacitacion',yn(ST.tg['ac']),''],
+  ]);
+  ws2['!cols']=[{wch:46},{wch:14},{wch:8}];
+  XLSX.utils.book_append_sheet(wb,ws2,'Capacitacion');
+
+  const ws3=XLSX.utils.aoa_to_sheet([
+    ['CHECKLIST DE CONOCIMIENTO','','',''],['','','',''],
+    ['RESULTADO',apr,'Conocimiento: '+pct+'%',''],['','','',''],
+    ['Item','Estado','Observacion',''],
+    ['-- ACCESO Y USO --','','',''],
+    ['El link del sitio esta anclado en los dispositivos',ck('link-anclado'),ob('link-anclado'),''],
+    ['Conocen actualizacion reciente (carritos, historial)',ck('actualizacion'),ob('actualizacion'),''],
+    ['-- FACTURACION --','','',''],
+    ['Conocen como generar el proceso de facturacion',ck('fact-proceso'),ob('fact-proceso'),''],
+    ['Conocen que pasa si se deja una venta en espera',ck('venta-espera'),ob('venta-espera'),''],
+    ['Conocen que pasa si se borra una linea del pedido',ck('borra-linea'),ob('borra-linea'),''],
+    ['Conocen que pasa si se borra la bolsa del pedido',ck('borra-bolsa'),ob('borra-bolsa'),''],
+    ['-- DESPACHO --','','',''],
+    ['Tiene anclada la pagina del OMS',ck('oms-anclado'),ob('oms-anclado'),''],
+    ['Conoce como hacer seguimiento en el OMS',ck('oms-seguimiento'),ob('oms-seguimiento'),''],
+    ['Conocen los tiempos de despacho',ck('tiempos-despacho'),ob('tiempos-despacho'),''],
+    ['Conoce los canales de comunicacion y accesos directos',ck('canales-com'),ob('canales-com'),''],
+    ['-- MATERIALES --','','',''],
+    ['Han visto contenidos enviados por WA, comunidades y correos',ck('material-visto'),ob('material-visto'),''],
+    ['Conocen el link de consulta para dudas',ck('link-dudas'),ob('link-dudas'),''],
+  ]);
+  ws3['!cols']=[{wch:52},{wch:16},{wch:44},{wch:6}];
+  XLSX.utils.book_append_sheet(wb,ws3,'Checklist');
+
+  const ws4=XLSX.utils.aoa_to_sheet([
+    ['CASOS FRECUENTES','',''],['','',''],
+    ['Caso','Estado','Rol'],
+    ['Cliente quiere cambiar direccion de entrega',cL('ca1'),'Administrador'],
+    ['Pedido entregado pero cliente no lo recibio',cL('ca2'),'Administrador'],
+    ['Sistema no permite facturar o se queda cargando',cL('ca3'),'Administrador'],
+    ['Producto sin stock en sitio pero existe en tienda',cL('ca4'),'Administrador'],
+    ['Carrito pausado no se puede retomar',cL('cc1'),'Cajero / Lider'],
+    ['Cliente quiere saber estado del pedido',cL('cc2'),'Cajero / Lider'],
+    ['Se borro linea del pedido por error',cL('cc3'),'Cajero / Lider'],
+  ]);
+  ws4['!cols']=[{wch:50},{wch:22},{wch:16}];
+  XLSX.utils.book_append_sheet(wb,ws4,'Casos Frecuentes');
+
+  const ws5=XLSX.utils.aoa_to_sheet([
+    ['ENCUESTA DE PERCEPCION','',''],['','',''],
+    ['Pregunta','Calificacion',''],
+    ['Facilidad de uso para colaboradores',st('enc1'),''],
+    ['Tiempos de recogida en tienda',st('enc2'),''],
+    ['Aprovechamiento del potencial de Pasillo Infinito',st('enc3'),''],
+    ['','',''],['OBSERVACIONES','',''],
+    [gv('obsGenerales')||'(sin observaciones)','',''],
+  ]);
+  ws5['!cols']=[{wch:50},{wch:16},{wch:6}];
+  XLSX.utils.book_append_sheet(wb,ws5,'Encuesta');
+
+  const slug=(gv('storeName')||'tienda').replace(/\s+/g,'-').toLowerCase();
+  const fech=gv('visitDate')||new Date().toISOString().slice(0,10);
+  XLSX.writeFile(wb,`Kit-Visita_${slug}_${fech}.xlsx`);
+  showToast('Excel exportado');
+}
+
+// ── TOAST ──
+function showToast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
+
+// ── INIT ──
+document.addEventListener('DOMContentLoaded',()=>{
+  initDOM();
+  document.getElementById('visitDate').value=new Date().toISOString().slice(0,10);
+  syncH(); p0();
+});
+</script>
+</body>
+</html>
